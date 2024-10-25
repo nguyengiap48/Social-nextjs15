@@ -1,45 +1,43 @@
+import prisma from "@/lib/client";
+import { auth } from "@clerk/nextjs/server";
 import { FaUserCircle } from "react-icons/fa";
+import StoryList from "./StoryList";
 
-function Stories() {
-    return (  
+async function Stories() {
+    const { userId: currentUserId } = auth();
+    if (!currentUserId) return null;
+
+    const stories = await prisma.story.findMany({
+        where: {
+            expiresAt: {
+                gt: new Date(),
+            },
+            OR: [
+                {
+                    user: {
+                        followers: {
+                            some: {
+                                followerId: currentUserId,
+                            },
+                        },
+                    },
+                },
+                {
+                    userId: currentUserId,
+                }
+            ],
+        },
+        include: {
+            user: true,
+        }
+    });
+
+    console.log("stories", stories);
+    
+    return (
         <div className="scrollbar-hide p-4 bg-white rounded-lg shadow-md overflow-scroll text-sm">
             <div className="w-full flex gap-8">
-                <div className="flex flex-col gap-2 items-center justify-center cursor-pointer">
-                    <FaUserCircle className="w-16 h-16 rounded-full ring-2"/>
-                    <span>Kyoo</span>
-                </div>
-                <div className="flex flex-col gap-2 items-center justify-center cursor-pointer">
-                    <FaUserCircle className="w-16 h-16 rounded-full ring-2"/>
-                    <span>Kyoo</span>
-                </div>
-                <div className="flex flex-col gap-2 items-center justify-center cursor-pointer">
-                    <FaUserCircle className="w-16 h-16 rounded-full ring-2"/>
-                    <span>Kyoo</span>
-                </div>
-                <div className="flex flex-col gap-2 items-center justify-center cursor-pointer">
-                    <FaUserCircle className="w-16 h-16 rounded-full ring-2"/>
-                    <span>Kyoo</span>
-                </div>
-                <div className="flex flex-col gap-2 items-center justify-center cursor-pointer">
-                    <FaUserCircle className="w-16 h-16 rounded-full ring-2"/>
-                    <span>Kyoo</span>
-                </div>
-                <div className="flex flex-col gap-2 items-center justify-center cursor-pointer">
-                    <FaUserCircle className="w-16 h-16 rounded-full ring-2"/>
-                    <span>Kyoo</span>
-                </div>
-                <div className="flex flex-col gap-2 items-center justify-center cursor-pointer">
-                    <FaUserCircle className="w-16 h-16 rounded-full ring-2"/>
-                    <span>Kyoo</span>
-                </div>
-                <div className="flex flex-col gap-2 items-center justify-center cursor-pointer">
-                    <FaUserCircle className="w-16 h-16 rounded-full ring-2"/>
-                    <span>Kyoo</span>
-                </div>
-                <div className="flex flex-col gap-2 items-center justify-center cursor-pointer">
-                    <FaUserCircle className="w-16 h-16 rounded-full ring-2"/>
-                    <span>Kyoo</span>
-                </div>
+                <StoryList stories={stories} userId={currentUserId} />
             </div>
         </div>
     );

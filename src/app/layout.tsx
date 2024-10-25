@@ -56,10 +56,10 @@ export default function RootLayout({
         <ClerkProvider>
             <html lang="en">
                 <body className={inter.className}>
-                    <div className="bg-white px-4 w-full md:px-8 lg:px-16 xl:px-32 2xl:px-64">
+                    <div className="bg-white z-50 shadow-md fixed top-0 left-0 right-0 px-4 w-full md:px-8 lg:px-16 xl:px-32 2xl:px-64">
                         <Navbar />
                     </div>
-                    <div className="bg-slate-200 px-4 w-full md:px-8 lg:px-16 xl:px-32 2xl:px-64">
+                    <div className="bg-slate-200 px-4 w-full mt-16 md:px-8 lg:px-16 xl:px-32 2xl:px-64">
                         {children}
                     </div>
                 </body>

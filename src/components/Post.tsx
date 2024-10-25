@@ -1,59 +1,68 @@
-import Image from "next/image";
-import { FaRegCommentDots, FaRegComments, FaRegHeart, FaRegShareSquare, FaSmile, FaUserCircle } from "react-icons/fa";
-import { FaShare } from "react-icons/fa6";
-import { HiDotsHorizontal } from "react-icons/hi";
-import Comment from "./Comment";
 
-function Post() {
-    return (  
-        <div className="flex flex-col gap-4 mb-6">
+import Comment from "./Comment";
+import { Post as PostType, User } from "@prisma/client";
+import PostInteraction from "./PostInteraction";
+import { Suspense } from "react";
+import PostInfo from "./PostInfo";
+import { auth } from "@clerk/nextjs/server";
+import Link from "next/link";
+
+type feedPostType = PostType & { user: User } & {
+    likes: [{ userId: string }];
+} & { _count: { comments: number } };
+function Post({ post }: { post: feedPostType }) {
+    const { userId } = auth()
+    return (
+        <div className="flex flex-col gap-4 bg-white w-full p-4 rounded-lg shadow-md">
             {/* Head Post*/}
             <div className="flex gap-4 items-center">
-                <FaUserCircle className="w-10 h-10"/>
-                <span className="font-medium">Kyoo</span>
+                <Link href={`/profile/${post.user.username}`} className="flex cursor-pointer gap-4 items-center">
+                    <img
+                        className="w-10 h-10 rounded-full"
+                        alt=""
+                        src={post.user.avatar || ""}
+                    />
+                    <span className="font-medium">
+                        {post.user.name && post.user.surname
+                            ? post.user.name + " " + post.user.surname
+                            : post.user.username}
+                    </span>
+                </Link>
 
-                <div className="flex justify-end flex-1">
-                    <HiDotsHorizontal className="text-2xl cursor-pointer text-[#434343]"/>
-                </div>
+                {userId === post.user.id && <PostInfo postId={post.id}/>}
             </div>
 
             {/* Content Post */}
-            <div className="w-full min-h-96">
-                <Image width={400} height={400}  className="w-full object-cover rounded-lg" alt="abc" src={'https://i.pinimg.com/originals/7d/a9/48/7da948b0c65036dbff8379b7cef9b719.jpg'} />
-            </div>
+            {post.img !== null && (
+                <div className="w-full">
+                    <img
+                        width={400}
+                        height={400}
+                        className="w-full object-cover rounded-lg"
+                        alt="abc"
+                        src={post.img}
+                    />
+                </div>
+            )}
 
             {/* Description Post */}
-            <div>
-                <span>fbahiufhgujhgw hfiuhwasfugfw fuhweifagsflhdjbs hfe wasufesjkfebsfsdvds fsadfsafs fsf</span>
-            </div>
+
+            <p className="text-sm">{post.desc}</p>
 
             {/* Option Post */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 bg-slate-100 rounded-full py-2 px-4">
-                    <FaRegHeart className="text-lg text-[#4769ff] cursor-pointer" />
-                    <div className="w-[1px] h-5 bg-[#cccccc]"></div>
-                    <span className="text-xs text-gray-500">123
-                        <span> Likes</span>
-                    </span>
-                </div>
-                <div className="flex items-center gap-4 bg-slate-100 rounded-full py-2 px-4">
-                    <FaRegCommentDots className="text-lg text-[#4769ff] cursor-pointer" />
-                    <div className="w-[1px] h-5 bg-[#cccccc]"></div>
-                    <span className="text-xs text-gray-500">123
-                        <span> Comments</span>
-                    </span>
-                </div>
-                <div className="flex items-center gap-4 bg-slate-100 rounded-full py-2 px-4">
-                    <FaRegShareSquare className="text-lg text-[#4769ff] cursor-pointer" />
-                    <div className="w-[1px] h-5 bg-[#cccccc]"></div>
-                    <span className="text-xs text-gray-500">123
-                        <span> Shares</span>
-                    </span>
-                </div>
-            </div>
+            <Suspense fallback="Loading...">
+
+            <PostInteraction
+                postId={post.id}
+                likes={post.likes.map((like) => like.userId)}
+                commentNumber={post._count.comments}
+            />
+            </Suspense>
+            <Suspense fallback="Loading...">
 
             {/* Comment Post */}
-            <Comment />
+            <Comment postId={post.id} />
+            </Suspense>
         </div>
     );
 }
